@@ -59,7 +59,7 @@ public class S3OutputStream extends OutputStream {
   private final int partSize;
   private final CannedAccessControlList cannedAcl;
   private boolean closed;
-  private ByteBuffer buffer;
+  private MultipartByteBuffer buffer;
   private MultipartUpload multiPartUpload;
   private final CompressionType compressionType;
   private volatile OutputStream compressionFilter;
@@ -77,7 +77,7 @@ public class S3OutputStream extends OutputStream {
     this.partSize = conf.getPartSize();
     this.cannedAcl = conf.getCannedAcl();
     this.closed = false;
-    this.buffer = ByteBuffer.allocate(this.partSize);
+    this.buffer = new MultipartByteBuffer(this.partSize);
     this.progressListener = new ConnectProgressListener();
     this.multiPartUpload = null;
     this.compressionType = conf.getCompressionType();
@@ -127,7 +127,7 @@ public class S3OutputStream extends OutputStream {
       multiPartUpload = newMultipartUpload();
     }
     try {
-      multiPartUpload.uploadPart(new ByteArrayInputStream(buffer.array()), size);
+      multiPartUpload.uploadPart(buffer.getArrayStream(), size);
     } catch (Exception e) {
       if (multiPartUpload != null) {
         multiPartUpload.abort();

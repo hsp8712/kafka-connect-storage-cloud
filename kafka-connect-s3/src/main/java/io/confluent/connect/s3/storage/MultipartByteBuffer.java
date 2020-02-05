@@ -91,7 +91,7 @@ public class MultipartByteBuffer  {
                 remainingLen -= currentPartRemaining;
             }
         }
-
+        position += length;
     }
 
     static void checkBounds(int off, int len, int size) { // package-private
@@ -112,10 +112,24 @@ public class MultipartByteBuffer  {
     }
 
     public void clear() {
+
+        // remain first part, remove others
         int size = multipart.size();
         for (int i = 1; i < size; i++) {
             multipart.remove(1);
         }
+
+        byte[] remain = multipart.get(0);
+
+        // reset
+        this.position = 0;
+        this.currentPartPos = 0;
+        this.currentPart = remain;
+        this.currentTotalAllocSize = remain.length;
+    }
+
+    public int partNum() {
+        return this.multipart.size();
     }
 
     public ByteArrayInputStream getArrayStream() {
